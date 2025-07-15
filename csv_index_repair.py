@@ -1,5 +1,5 @@
 """
-Module: fix_indices.py
+Module: csv_index_repair.py
 
 Description:
 This utility module repairs and normalizes index columns in CSV datasets used by the 
