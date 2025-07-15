@@ -1,3 +1,32 @@
+"""
+Module: first_classifier_predictor.py
+
+Description:
+This module implements the inference logic for the first-stage classifier in the Legal 
+Hallucination Detector pipeline. It determines whether Hebrew legal text paragraphs 
+require further verification by identifying potentially problematic content.
+
+Key Functionality:
+1. Model Loading and Inference
+   - Loads a fine-tuned Aleph-BERT model specialized for Hebrew legal text
+   - Provides efficient tokenization and prediction capabilities
+   - Returns both classification result and confidence score
+
+2. Interactive Interface
+   - Includes a command-line interface for real-time text evaluation
+   - Supports batch processing of predefined examples
+   - Displays confidence percentages for user-friendly interpretation
+
+3. Pipeline Integration
+   - Acts as the initial filtering step in the hallucination detection workflow
+   - Identifies text that requires further analysis with search queries
+   - Reduces processing overhead by filtering out content that doesn't need verification
+
+This module represents the entry point of the hallucination detection pipeline, making
+the initial determination of which legal paragraphs warrant deeper investigation for
+potential factual inaccuracies.
+"""
+
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 

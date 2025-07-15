@@ -1,0 +1,20 @@
+flowchart TD
+    A[("📄 Legal Text Input")] --> B["✂️ Partition into Paragraphs<br><small>Text segmentation</small>"]
+    B --> C{"🔍 First-Stage Classification<br><small>Filter paragraphs</small>"}
+    C -->|"Doesn't need check"| D["✅ No Further Processing<br><small>Skip verification</small>"]
+    C -->|"Needs check"| E["🔎 Search Query Generator<br><small>Generate targeted queries</small>"]
+    E --> F["📊 Data Retriever<br><small>Google API search</small>"]
+    F --> G["🧠 Embedding Generation<br><small>VoyageAI embeddings for<br>search results & paragraph</small>"]
+    G --> H{"⚖️ Final Classification<br><small>Compare embeddings</small>"}
+    H -->|"No Hallucination"| I["✓ Verified Content<br><small>Factually accurate</small>"]
+    H -->|"Contains Hallucination"| J["❌ Flagged Content<br><small>Factual errors detected</small>"]
+    
+    classDef process fill:#4682B4,stroke:#000000,stroke-width:2px,color:#FFFFFF,font-weight:bold,border-radius:8px;
+    classDef decision fill:#FF6B81,stroke:#000000,stroke-width:2px,color:#FFFFFF,font-weight:bold,border-radius:16px;
+    classDef output fill:#2E8B57,stroke:#000000,stroke-width:2px,color:#FFFFFF,font-weight:bold,border-radius:4px;
+    classDef input fill:#6A5ACD,stroke:#000000,stroke-width:2px,color:#FFFFFF,font-weight:bold,border-radius:24px;
+    
+    class B,E,F,G process;
+    class C,H decision;
+    class D,I,J output;
+    class A input;

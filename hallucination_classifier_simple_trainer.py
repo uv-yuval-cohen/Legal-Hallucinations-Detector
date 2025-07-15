@@ -1,3 +1,38 @@
+"""
+Module: hallucination_classifier_simple_trainer.py
+
+Description:
+This module implements a straightforward single-run training approach for the Legal 
+Hallucination Detector classifier. It provides a simpler alternative to the k-fold 
+cross-validation approach, using standard train/val/test splits and basic feature 
+concatenation.
+
+Key Functionality:
+1. Basic Feature Processing
+   - Creates 2048-dimensional feature vectors through simple concatenation of original 
+     and search embeddings
+   - Maintains direct semantic relationships between paired texts
+
+2. Model Architecture
+   - Neural network classifier with dropout regularization for small dataset training
+   - Early stopping implementation to prevent overfitting
+   - Xavier uniform initialization for training stability
+
+3. Standard Split Evaluation
+   - Fixed train/validation/test splits for consistent benchmarking
+   - Comprehensive test metrics including accuracy, ROC-AUC, and classification report
+   - Detailed per-sample error tracking with confidence analysis
+
+4. Visualization Tools
+   - Training curve visualization showing loss and accuracy progression
+   - Confusion matrix and ROC curve plotting for model performance analysis
+   - Exportable results for comparison with other training approaches
+
+This module serves as a baseline implementation for the hallucination classifier and 
+provides a simpler training approach that complements the more robust k-fold 
+cross-validation method.
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

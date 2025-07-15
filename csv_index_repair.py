@@ -1,3 +1,25 @@
+"""
+Module: fix_indices.py
+
+Description:
+This utility module repairs and normalizes index columns in CSV datasets used by the 
+Legal Hallucination Detector pipeline. It ensures consistent sequential indexing, which 
+is critical for proper dataset processing and model training.
+
+Key Functionality:
+- Resets non-sequential or corrupted index columns to sequential integers
+- Supports both 1-based (1,2,3...) and 0-based (0,1,2...) indexing schemes
+- Can create a new fixed file or overwrite the existing file
+- Provides detailed console output about the indexing changes
+
+This module is typically used when:
+1. Records have been deleted from the dataset causing index gaps
+2. Multiple data sources have been combined resulting in duplicate indices
+3. Preparing datasets for machine learning processes that require sequential indices
+
+Example usage is provided at the end of the file for common use cases.
+"""
+
 import pandas as pd
 
 

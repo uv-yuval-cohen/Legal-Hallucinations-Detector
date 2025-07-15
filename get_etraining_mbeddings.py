@@ -1,3 +1,35 @@
+"""
+Module: get_tarining_embeddings.py
+
+Description:
+This module handles the generation of text embeddings for the Legal Hallucination Detector 
+using the VoyageAI API. It converts text data into high-dimensional vector representations 
+that capture semantic meaning, which are essential for the classification process.
+
+Key Functionality:
+1. Text Processing
+   - Extracts original legal text and search queries from formatted inputs
+   - Handles multi-lingual content including Hebrew text
+
+2. Embedding Generation
+   - Interfaces with VoyageAI's API to generate 1024-dimensional embeddings
+   - Processes data in configurable batches for efficiency and API rate limiting
+   - Implements robust error handling with automatic retries
+
+3. Data Management
+   - Converts JSONL text inputs to numpy array embeddings
+   - Creates paired embeddings for original paragraphs and their search results
+   - Preserves index mapping and labels for training pipeline consistency
+   
+4. Resource Optimization
+   - Implements batch processing to maximize API efficiency
+   - Provides checkpoint saving to prevent data loss during long runs
+   - Configurable resume functionality for interrupted processes
+
+This module is a critical component in the pipeline, transforming raw text into 
+the vector representations used by the machine learning models for hallucination detection.
+"""
+
 import json
 import re
 import time

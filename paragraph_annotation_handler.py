@@ -1,3 +1,37 @@
+"""
+Module: paragraph_annotation_handler.py
+
+Description:
+This module handles text processing and annotation management for the Legal Hallucination Detector pipeline. 
+It provides functionality for paragraph extraction, dataset management, and search query handling.
+
+Key Components:
+1. Text Processing
+   - Splits legal text into paragraphs while preserving language-specific features
+   - Supports multilingual content including Hebrew
+
+2. Dataset Management
+   - Maintains a CSV-based annotation system for legal paragraphs
+   - Tracks metadata including need_check, isHallucination flags, and search queries
+   - Provides functions for adding, deleting, and updating paragraph records
+   - Prevents duplicate entries through automatic detection
+
+3. Search Query Handling
+   - Adds and manages search queries for paragraphs requiring verification
+   - Supports batch processing from external files (for_search.txt)
+
+4. Statistics and Reporting
+   - Generates dataset composition statistics
+   - Tracks annotation progress and verification status
+
+5. Interactive Interface
+   - Command-line menu system for manual data curation
+   - Batch processing capabilities for efficient data handling
+
+This module forms the foundation of the data preparation phase in the hallucination 
+detection pipeline, creating properly annotated datasets for the classification models.
+"""
+
 import csv
 import os
 
