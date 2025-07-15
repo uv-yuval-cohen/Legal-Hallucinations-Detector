@@ -1,3 +1,30 @@
+"""
+Hebrew Text Classifier Training Script
+
+This script trains a binary classifier using Aleph-BERT to determine whether
+a Hebrew text paragraph needs manual checking/review.
+
+Input: 
+- CSV file 'annotated_paragraphs.csv' with columns: 'paragraph', 'need_check'
+- 'need_check': 0 (no check needed) or 1 (needs check)
+
+Output:
+- Fine-tuned model saved to 'aleph_bert_finetuned/' directory
+- Training plots and evaluation metrics
+- Test results in 'test_results.txt'
+
+Key Parameters:
+- MAX_LEN: 256 tokens
+- BATCH_SIZE: 16
+- EPOCHS: 6 (with early stopping)
+- LEARNING_RATE: 2e-5
+
+Usage:
+    python script_name.py
+
+Requirements:
+    torch, transformers, pandas, numpy, sklearn, matplotlib, seaborn, tqdm
+"""
 import pandas as pd
 import numpy as np
 import torch
