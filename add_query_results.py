@@ -1,3 +1,14 @@
+"""
+Search Results Data Augmentation for Hallucination Detection
+
+Augments annotated paragraph datasets by adding corresponding web search results.
+Takes CSV files with labeled paragraphs and retrieves actual search results to 
+provide ground truth context for hallucination detection models.
+
+Input: CSV with paragraph, search_query, isHallucination, Index columns
+Output: JSONL with index, label, formatted text, and search metadata
+"""
+
 import requests
 import pandas as pd
 from newspaper import Article
