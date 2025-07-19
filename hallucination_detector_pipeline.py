@@ -399,6 +399,24 @@ class HallucinationDetector:
         """
         # Calculate summary statistics
         total_paragraphs = len(results)
+        
+        # Check if we have any paragraphs to process
+        if total_paragraphs == 0:
+            # Handle the case of empty input file or no paragraphs
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "processing_time_seconds": processing_time,
+                "summary": {
+                    "total_paragraphs": 0,
+                    "paragraphs_needing_check": 0,
+                    "paragraphs_with_hallucinations": 0,
+                    "overall_hallucination_rate": 0.0,
+                    "processing_errors": 0
+                },
+                "detailed_results": [],
+                "text_report": "No content to analyze. The input file may be empty or contain no valid paragraphs."
+            }
+            
         needing_check = sum(1 for r in results if r["needs_check"])
         
         # Count hallucinations among paragraphs that needed checking
@@ -407,7 +425,7 @@ class HallucinationDetector:
         # Count errors
         errors = sum(1 for r in results if r.get("error") is not None)
         
-        # Calculate overall hallucination rate
+        # Calculate overall hallucination rate - safe division
         hallucination_rate = hallucinations / total_paragraphs if total_paragraphs > 0 else 0
         
         # Create report
@@ -458,7 +476,9 @@ class HallucinationDetector:
         
         if summary['paragraphs_needing_check'] > 0:
             summary_text += f"- Paragraphs with hallucinations: {summary['paragraphs_with_hallucinations']}/{summary['paragraphs_needing_check']} "
-            summary_text += f"({summary['paragraphs_with_hallucinations']/summary['paragraphs_needing_check']*100:.1f}%)\n"
+            # Safe division to avoid ZeroDivisionError
+            hallucination_percentage = (summary['paragraphs_with_hallucinations']/summary['paragraphs_needing_check']*100) if summary['paragraphs_needing_check'] > 0 else 0
+            summary_text += f"({hallucination_percentage:.1f}%)\n"
         
         summary_text += f"- Overall hallucination rate: {summary['overall_hallucination_rate']*100:.1f}%\n"
         
@@ -516,6 +536,11 @@ def process_text_file(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             text = f.read()
             
+        # Check if the file is empty or just whitespace
+        if not text.strip():
+            print("\nError: The input file is empty or contains only whitespace.")
+            return {"error": "The input file is empty or contains only whitespace."}
+            
         # Initialize detector
         detector = HallucinationDetector()
         
@@ -524,7 +549,12 @@ def process_text_file(file_path):
         
         # Save report
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = f"hallucination_report_{timestamp}.txt"
+        # Extract the base name from the input file path
+        base_name = os.path.basename(file_path)
+        # Split the name and extension
+        name_part, ext = os.path.splitext(base_name)
+        # Create the new output filename with the original name, hallucination_report, and timestamp
+        output_file = f"{name_part}_hallucination_report_{timestamp}{ext}"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(results["text_report"])
             
