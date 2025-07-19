@@ -1,4 +1,7 @@
 .env
+aleph_bert_finetuned/
+.DS_Store
+hebrew_hallucination_classifier_20250616_152007.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
