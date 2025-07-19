@@ -615,8 +615,15 @@ def process_text_file(file_path, model_path="simple_model.pth"):
         base_name = os.path.basename(file_path)
         # Split the name and extension
         name_part, ext = os.path.splitext(base_name)
-        # Create the new output filename with the original name, hallucination_report, and timestamp
-        output_file = f"{name_part}_hallucination_report_{timestamp}{ext}"
+        
+        # Determine the model type for the filename
+        if "k_fold_model" in model_path:
+            model_type = "k_fold_model"
+        else:
+            model_type = "simple_model"
+            
+        # Create the new output filename with input name, model type, and timestamp
+        output_file = f"{name_part}_{model_type}_hallucination_report_{timestamp}{ext}"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(results["text_report"])
             
