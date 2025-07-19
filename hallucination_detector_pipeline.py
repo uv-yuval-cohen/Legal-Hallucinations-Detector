@@ -107,8 +107,17 @@ else:
 class HallucinationDetector:
     """Main class for detecting hallucinations in legal text."""
 
-    def __init__(self):
-        """Initialize the hallucination detector with all required components."""
+    def __init__(self, model_path="simple_model.pth"):
+        """
+        Initialize the hallucination detector with all required components.
+        
+        Args:
+            model_path (str, optional): Path to the model file. Defaults to simple_model.pth.
+        """
+        # Store model path
+        self.model_path = model_path
+        print(f"Using model: {self.model_path}")
+        
         # Initialize components
         print("Initializing Legal Hallucination Detector...")
         
@@ -137,8 +146,9 @@ class HallucinationDetector:
             print("Initializing search results retriever...")
             self.search_retriever = SearchResultsRetriever()
 
-            # Initialize embedding generator
+            # Initialize embedding generator with appropriate dimension based on the model
             print("Initializing embedding generator...")
+            # Initialize the embedding generator (always outputs 2048 dimensions)
             self.hallucination_detector_embedding_generator = EmbeddingGenerator()
 
             # Initialize final classifier
@@ -169,27 +179,50 @@ class HallucinationDetector:
             print(f"Using {device} device for final classifier")
             
             # Initialize model architecture (match the architecture in saved model)
-            model = HallucinationClassifier(input_dim=2048)  # Changed from 4096 to 2048 to match saved model
+            # Determine the input dimension based on the model file
+            input_dim = 2048  # Default for simple model
             
-            # Load saved model weights
-            model_paths = [
-                # Specific model path
-                "hebrew_hallucination_classifier_20250616_152007.pth",
-            ]
+            # If using k_fold_model, we need to use 4096 as input dimension
+            if "k_fold_model" in self.model_path:
+                input_dim = 4096
+                
+            print(f"Initializing classifier with input_dim={input_dim}")
+            model = HallucinationClassifier(input_dim=input_dim)
             
-            model_loaded = False
-            for path in model_paths:
-                if os.path.exists(path):
-                    print(f"Loading classifier from {path}")
-                    checkpoint = torch.load(path, map_location=device)
+            # Load model from specified path
+            if os.path.exists(self.model_path):
+                print(f"Loading classifier from {self.model_path}")
+                try:
+                    # First try with default settings
+                    checkpoint = torch.load(self.model_path, map_location=device)
                     model.load_state_dict(checkpoint['model_state_dict'])
+                except Exception as e:
+                    # If that fails, try with weights_only=False (for PyTorch 2.6+ compatibility)
+                    print(f"Standard loading failed, trying with weights_only=False: {str(e)}")
+                    checkpoint = torch.load(self.model_path, map_location=device, weights_only=False)
+                    model.load_state_dict(checkpoint['model_state_dict'])
+                
+                model.to(device)
+                model.eval()  # Set model to evaluation mode
+            else:
+                # Try legacy path as fallback
+                legacy_path = "hebrew_hallucination_classifier_20250616_152007.pth"
+                if os.path.exists(legacy_path):
+                    print(f"Model {self.model_path} not found. Falling back to legacy model: {legacy_path}")
+                    try:
+                        # First try with default settings
+                        checkpoint = torch.load(legacy_path, map_location=device)
+                        model.load_state_dict(checkpoint['model_state_dict'])
+                    except Exception as e:
+                        # If that fails, try with weights_only=False (for PyTorch 2.6+ compatibility)
+                        print(f"Legacy model loading failed, trying with weights_only=False: {str(e)}")
+                        checkpoint = torch.load(legacy_path, map_location=device, weights_only=False)
+                        model.load_state_dict(checkpoint['model_state_dict'])
+                    
                     model.to(device)
                     model.eval()  # Set model to evaluation mode
-                    model_loaded = True
-                    break
-            
-            if not model_loaded:
-                raise FileNotFoundError("Could not find classifier model file.")
+                else:
+                    raise FileNotFoundError(f"Could not find classifier model file at {self.model_path}")
                 
             return model
             
@@ -368,6 +401,34 @@ class HallucinationDetector:
         # Convert features to tensor
         features_tensor = torch.FloatTensor(features).to(device)
         
+        # For k_fold_model, we need to adapt the 2048-dim embedding to 4096-dim
+        # by duplicating and adding synthetic features
+        if "k_fold_model" in self.model_path:
+            # Check if we need to add a batch dimension
+            if len(features_tensor.shape) == 1:
+                # For 1D tensor, first reshape to ensure we have the right dimensions
+                # The tensor is 2048 elements, we need to split into two 1024-element parts
+                features_tensor = features_tensor.unsqueeze(0)  # Add batch dimension
+            
+            # Now split along the feature dimension (dimension 1)
+            original_embedding = features_tensor[:, :1024]
+            search_embedding = features_tensor[:, 1024:2048]
+            
+            # Create additional synthetic features
+            element_product = original_embedding * search_embedding
+            difference = original_embedding - search_embedding
+            
+            # Combine to create a 4096-dim vector
+            features_tensor = torch.cat([
+                original_embedding,   # 1024 dims
+                search_embedding,     # 1024 dims
+                element_product,      # 1024 dims
+                difference            # 1024 dims
+            ], dim=1)               # Total: 4096 dims
+            
+            print(f"Adapted embedding from 2048 to 4096 dimensions for k_fold model")
+            print(f"New tensor shape: {features_tensor.shape}")
+        
         # Ensure correct shape for model input (batch dimension)
         if len(features_tensor.shape) == 1:
             features_tensor = features_tensor.unsqueeze(0)
@@ -521,12 +582,13 @@ class HallucinationDetector:
         return full_report
 
 
-def process_text_file(file_path):
+def process_text_file(file_path, model_path="simple_model.pth"):
     """
     Process text from a file through the hallucination detector.
     
     Args:
         file_path (str): Path to text file to process.
+        model_path (str, optional): Path to the model file. Defaults to simple_model.pth.
         
     Returns:
         dict: Detection results.
@@ -541,8 +603,8 @@ def process_text_file(file_path):
             print("\nError: The input file is empty or contains only whitespace.")
             return {"error": "The input file is empty or contains only whitespace."}
             
-        # Initialize detector
-        detector = HallucinationDetector()
+        # Initialize detector with specified model path
+        detector = HallucinationDetector(model_path=model_path)
         
         # Process the text
         results = detector.detect_hallucinations(text)
@@ -583,8 +645,15 @@ def main():
     # Check command line arguments for file input
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
+        
+        # Check for model path as optional second argument
+        model_path = "simple_model.pth"  # Default
+        if len(sys.argv) > 2:
+            model_path = sys.argv[2]
+            print(f"Using custom model: {model_path}")
+        
         print(f"Processing file: {file_path}")
-        process_text_file(file_path)
+        process_text_file(file_path, model_path)
         return
     
     # Interactive mode
@@ -611,8 +680,8 @@ def main():
                 
             text = "\n".join(lines)
             
-            # Initialize detector
-            detector = HallucinationDetector()
+            # Initialize detector with default model
+            detector = HallucinationDetector(model_path="simple_model.pth")
             
             # Process the text
             results = detector.detect_hallucinations(text)
