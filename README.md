@@ -155,15 +155,16 @@ Before running the pipeline, ensure you have:
 
 3. **Model Files**
    Ensure you have the classifier models in the project root:
-   - `simple_model.pth` (default)
-   - `k_fold_model.pth` (optional, for improved accuracy)
-   - `aleph_bert_finetuned/` directory containing the first-stage classifier model
+   - `simple_model.pth` (default - can be found in our repository)
+   - `k_fold_model.pth` (optional, for improved accuracy - can be found in our repository)
+   - `aleph_bert_finetuned/` directory containing the first-stage classifier model. 
+    link to download this classifier: https://drive.google.com/drive/folders/1rsRUuh6JDLb8GiAbZ5HGaQmb0r-YR-FJ?usp=sharing
 
 ### Running the Pipeline
 
 #### Model Selection
 
-**Important**: By default, the pipeline runs with the `simple_model.pth`. For better accuracy (especially on challenging texts), you can explicitly specify the k-fold model, which shows higher performance as demonstrated in our evaluation results.
+**Important**: By default, the pipeline runs with the `simple_model.pth`. For better accuracy (especially on challenging texts), you can explicitly specify the `k_fold_model.pth` model.
 
 #### Method 1: Process a Text File
 
@@ -214,7 +215,7 @@ Here's an example workflow:
    source venv/bin/activate  # On macOS/Linux
    ```
 
-2. Run the pipeline on a test file:
+2. Run the pipeline on a test file using the simple model by default:
    ```bash
    python hallucination_detector_pipeline.py test_legal_text_1.txt
    ```
@@ -227,5 +228,6 @@ Here's an example workflow:
    ```
 
 ---
+
 
 *This project addresses the critical need for accuracy verification in AI-generated legal content, providing a scalable solution for legal professionals and AI systems requiring factual reliability.*
