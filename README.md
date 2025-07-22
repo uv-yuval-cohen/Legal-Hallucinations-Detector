@@ -119,6 +119,113 @@ Performance comparison on **96 exceptionally difficult legal samples** that requ
 
 The system demonstrates strong performance in detecting hallucinations in legal AI-generated content, with the K-Fold ensemble model achieving 70% accuracy and 0.68 F1 score on challenging evaluation samples. The multi-stage approach effectively combines automated filtering, evidence retrieval, and embedding-based classification to provide reliable hallucination detection for legal applications.
 
+## Running the Hallucination Detector Pipeline
+
+The hallucination detector pipeline provides a comprehensive framework for analyzing legal text and identifying potential factual inaccuracies (hallucinations).
+
+### Pipeline Structure
+
+The `hallucination_detector_pipeline.py` module serves as the main entry point to the system, orchestrating all components:
+
+1. **Text Partitioning**: Splits input text into paragraphs for analysis
+2. **First-Stage Classification**: Filters paragraphs to identify which require fact-checking
+3. **Search Query Generation**: Creates optimized search queries for paragraphs needing verification
+4. **Data Retrieval**: Retrieves evidence from external sources via Google Search API
+5. **Embedding Generation**: Creates vector representations of paragraphs and search results
+6. **Final Classification**: Determines presence of hallucinations by comparing embeddings
+
+### Prerequisites
+
+Before running the pipeline, ensure you have:
+
+1. **Environment Setup**
+   - Python 3.8+ installed
+   - Virtual environment created and activated
+   - Required packages installed: `pip install -r requirements.txt`
+
+2. **API Keys**
+   Create a `.env` file in the project root with the following keys:
+   ```
+   OPENAI_API_KEY=your_openai_api_key
+   SEARCH_API_KEY=your_google_search_api_key
+   SEARCH_ENGINE_ID=your_search_engine_id
+   API_KEY=your_voyageai_api_key
+   HUGGINGFACE_TOKEN=your_huggingface_token
+   ```
+
+3. **Model Files**
+   Ensure you have the classifier models in the project root:
+   - `simple_model.pth` (default)
+   - `k_fold_model.pth` (optional, for improved accuracy)
+   - `aleph_bert_finetuned/` directory containing the first-stage classifier model
+
+### Running the Pipeline
+
+#### Model Selection
+
+**Important**: By default, the pipeline runs with the `simple_model.pth`. For better accuracy (especially on challenging texts), you can explicitly specify the k-fold model, which shows higher performance as demonstrated in our evaluation results.
+
+#### Method 1: Process a Text File
+
+Run the pipeline on a specific legal text file:
+
+```bash
+python hallucination_detector_pipeline.py path/to/your/legal_text.txt
+```
+
+Optionally specify the k-fold model:
+
+```bash
+python hallucination_detector_pipeline.py path/to/your/legal_text.txt k_fold_model.pth
+```
+
+#### Method 2: Interactive Mode
+
+Run in interactive mode to analyze text entered directly:
+
+```bash
+python hallucination_detector_pipeline.py
+```
+
+In this mode:
+- Enter text directly when prompted
+- Press Enter twice to finish input
+- Type 'exit' to quit
+- Choose whether to save the report after analysis
+
+### Output
+
+The pipeline generates:
+
+1. A detailed console report showing:
+   - Summary statistics
+   - Analysis of each paragraph
+   - Hallucination detections with confidence scores
+
+2. A text file report saved with timestamp and model information:
+   - Example: `test_legal_text_1_simple_model_hallucination_report_20250719_140535.txt`
+
+### Example
+
+Here's an example workflow:
+
+1. Activate your environment:
+   ```bash
+   source venv/bin/activate  # On macOS/Linux
+   ```
+
+2. Run the pipeline on a test file:
+   ```bash
+   python hallucination_detector_pipeline.py test_legal_text_1.txt
+   ```
+
+3. Review the generated report in both console output and the saved file.
+
+4. For better accuracy, run with the k-fold model:
+   ```bash
+   python hallucination_detector_pipeline.py test_legal_text_1.txt k_fold_model.pth
+   ```
+
 ---
 
 *This project addresses the critical need for accuracy verification in AI-generated legal content, providing a scalable solution for legal professionals and AI systems requiring factual reliability.*

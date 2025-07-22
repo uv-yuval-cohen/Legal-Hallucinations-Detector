@@ -41,13 +41,15 @@ EMBEDDING_DIM = 1024  # Voyage-3-large embedding dimension
 class EmbeddingGenerator:
     """Class to generate embeddings using VoyageAI API."""
 
-    def __init__(self, api_key=None, model="voyage-3-large"):
+    def __init__(self, api_key=None, model="voyage-3-large", output_dimension=2048):
         """
         Initialize the embedding generator.
 
         Args:
             api_key (str, optional): VoyageAI API key. If None, loads from environment variable.
             model (str, optional): VoyageAI model to use. Defaults to "voyage-3-large".
+            output_dimension (int, optional): Dimension of the combined feature output. 
+                                             Use 2048 for simple_model and 4096 for k_fold_model.
         """
         # Set API key from parameter or environment
         self.api_key = api_key or os.getenv("API_KEY")
@@ -57,6 +59,9 @@ class EmbeddingGenerator:
         self.model = model
         self.client = voyageai.Client(api_key=self.api_key)
         self.embedding_dim = EMBEDDING_DIM
+        self.output_dimension = output_dimension
+        
+        print(f"Embedding generator initialized with output dimension: {self.output_dimension}")
         
     def get_embeddings(self, paragraph: str, search_results: List[Dict]) -> Dict:
         """
@@ -140,11 +145,30 @@ class EmbeddingGenerator:
                 # Create feature vector combinations as expected by the classifier
                 element_product = original_embedding * search_embedding
                 
-                # Combine all features to match the model's expected input dimension of 2048
-                features = np.concatenate([
-                    original_embedding,          # 1024 dims
-                    search_embedding             # 1024 dims
-                ])                               # Total: 2048 dims
+                # Combine features based on the required output dimension
+                if self.output_dimension == 2048:
+                    # Original + search embeddings (2048 dims total)
+                    features = np.concatenate([
+                        original_embedding,          # 1024 dims
+                        search_embedding             # 1024 dims
+                    ])                               # Total: 2048 dims
+                elif self.output_dimension == 4096:
+                    # Original + search + element-wise product + difference (4096 dims total)
+                    # Additional features for k_fold model
+                    difference = original_embedding - search_embedding
+                    features = np.concatenate([
+                        original_embedding,          # 1024 dims
+                        search_embedding,            # 1024 dims
+                        element_product,             # 1024 dims
+                        difference                   # 1024 dims
+                    ])                               # Total: 4096 dims
+                else:
+                    # Default to 2048 dimensions if unsupported dimension is requested
+                    print(f"Warning: Unsupported output dimension {self.output_dimension}, defaulting to 2048")
+                    features = np.concatenate([
+                        original_embedding,
+                        search_embedding
+                    ])
                 
                 # Create embedding dictionary
                 embedding_dict = {
