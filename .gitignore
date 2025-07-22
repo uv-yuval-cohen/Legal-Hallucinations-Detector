@@ -1,8 +1,6 @@
 .env
 aleph_bert_finetuned/
 .DS_Store
-simple_model.pth
-k_fold_model.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
